@@ -1,3 +1,40 @@
+/* TODO:
+A simple 2d pixel top-down shoot'em up with a very limited color pallete
+
+CURRENTLY WORKING ON: 
+    Figuring out a way to make the systems not to be too over-engineered, just work,
+    but still be open enough for more functions lol I should probably just make it work
+    and think later... But thinking it through now will save me a lot of reworking later too
+    [...] I better figure it out!
+
+Planned general:
+    - AN EPIC MENU with a HIGHSCORE!!!!
+    sidebar:
+    - simple life counter, ship images basically
+    - a vertical level progression bar
+    topbar:
+    - score counter
+    levelcounter:
+    - ditto
+    gamearea:
+    - a few backgrounds
+    - camera2D implementation for parallax & different angles
+    enemies:
+    - different types of enemies with distinct patterns of attacks and movement
+    player:
+    - different ships? with different attacks?
+    
+    TODO artistical direction edition:
+    - Make Backgrounds for topbar, sidebar and levelcounter areas * implement them
+    - Make Textures for the Player and Enemies
+    - Make a -simple- fancy font
+    - Design a title for the MENU
+    - Come up with a better game name than whats coded in right now...
+    - Find the right color palletes, orrr better yet, automate it!
+    - Some pixel effects of destruction and screenshake?
+    - -Satisfying- not too irritating sound effects
+*/ 
+
 #include <iostream>
 #include "raylib.h"
 
@@ -13,7 +50,7 @@ void GameLoop();
 void LoadLevel();
 
 const struct Window {
-    const char* title = "Galaxorg";
+    const char* title = "Galaxory";
     int width = gamearea_square + sidebar_width;
     int height = gamearea_square + topbar_height;
 } window;
@@ -74,6 +111,13 @@ class LevelCounter : public SquareArea
     {
         DrawRectangleV(this->position, this->size, YELLOW);
     }
+};
+class Entity
+{
+    public:
+        Vector2 position;
+        Rectangle Texture;
+    
 };
 
 TopBar topbar;
