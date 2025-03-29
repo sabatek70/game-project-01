@@ -2,12 +2,9 @@
 A simple 2d pixel top-down shoot'em up with a very limited color pallete
 
 CURRENTLY WORKING ON: 
-    - Make Backgrounds for topbar, sidebar and levelcounter areas * implement them
-    - Make Textures for the Player and Enemies
-    
+
     
 Planned general:
-    - AN EPIC MENU with a HIGHSCORE!!!!
     sidebar:
     - simple life counter, ship images basically
     - a vertical level progression bar
@@ -20,15 +17,9 @@ Planned general:
     - camera2D implementation for parallax & different angles
     enemies:
     - different types of enemies with distinct patterns of attacks and movement
-    player:
-    - different ships? with different attacks?
     
     TODO artistical direction edition:
     
-    
-    - Make a -simple- fancy font
-    - Design a title for the MENU
-    - Come up with a better game name than whats coded in right now...
     - Find the right color palletes, orrr better yet, automate it!
     - Some pixel effects of destruction and screenshake?
     - -Satisfying- not too irritating sound effects
@@ -67,6 +58,10 @@ enum TextureEnum
     SidebarTexture = 40,
     GameArea1Texture = 50
 };
+enum bulletType {
+    PLAYER,
+    ENEMY
+};
 
 class StaticSquareArea {
     protected:
@@ -95,7 +90,48 @@ class isAnimated {
     protected:
         int frameCount;
         int frameSpeed;
+        int frameCooldown = 0;
+        int currentFrame = 0;
         Rectangle currentFraming;
+};
+
+class Entity
+{
+    public:
+        Vector2 position;
+        Vector2 size;
+        Vector2 velocity;
+        void move(){
+            this->position.x += this->velocity.x;
+            this->position.y += this->velocity.y;
+        }
+        void bounds() {
+            if (this->position.x < 0) {
+                this->position.x = 0;
+                this->velocity.x = 0;
+            }
+            if (this->position.x > gamearea_square - this->size.x) {
+                this->position.x = gamearea_square - this->size.x;
+                this->velocity.x = 0;
+            }
+            if (this->position.y < topbar_height) {
+                this->position.y = topbar_height;
+                this->velocity.y = 0;
+            }
+            if (this->position.y > gamearea_square + topbar_height - this->size.y) {
+                this->position.y = gamearea_square + topbar_height - this->size.y;
+                this->velocity.y = 0;
+            }
+        }
+    private:
+        int life = 0;
+};
+class canShoot
+{
+    protected:
+        int damage = 0;
+    public:
+        void shoot();
 };
 class TopBar : public StaticSquareArea, public hasTexture
 {
@@ -165,48 +201,8 @@ class GameArea : public StaticSquareArea, public hasTexture
         }
 };
 
-class Entity
-{
-    public:
-        Vector2 position;
-        Vector2 size;
-        Vector2 velocity;
-        void move(){
-            this->position.x += this->velocity.x;
-            this->position.y += this->velocity.y;
-        }
-        void bounds() {
-            if (this->position.x < 0) {
-                this->position.x = 0;
-                this->velocity.x = 0;
-            }
-            if (this->position.x > gamearea_square - this->size.x) {
-                this->position.x = gamearea_square - this->size.x;
-                this->velocity.x = 0;
-            }
-            if (this->position.y < topbar_height) {
-                this->position.y = topbar_height;
-                this->velocity.y = 0;
-            }
-            if (this->position.y > gamearea_square + topbar_height - this->size.y) {
-                this->position.y = gamearea_square + topbar_height - this->size.y;
-                this->velocity.y = 0;
-            }
-        }
-    private:
-        int life = 0;
-};
-class canShoot
-{
-    protected:
-        int damage = 0;
-    public:
-        void shoot();
-};
-enum bulletType {
-    PLAYER,
-    ENEMY
-};
+
+
 class Bullet : public Entity, public hasTexture
 {
     private:
@@ -264,7 +260,7 @@ class Player: public Entity, public hasTexture, public canShoot
             if (this->velocity.x < 0) {
                 this->velocity.x += 0.3;
             }
-            if (this->velocity.x < 0.21 && this->velocity.x > -0.21) {
+            if (this->velocity.x < 0.31 && this->velocity.x > -0.31) {
                 this->velocity.x = 0;
             }
             if (this->velocity.y > 0) {
@@ -273,7 +269,7 @@ class Player: public Entity, public hasTexture, public canShoot
             if (this->velocity.y < 0) {
                 this->velocity.y += 0.3;
             }
-            if (this->velocity.y < 0.21 && this->velocity.y > -0.21) {
+            if (this->velocity.y < 0.31 && this->velocity.y > -0.31) {
                 this->velocity.y = 0;
             }
         }
@@ -282,6 +278,7 @@ class Player: public Entity, public hasTexture, public canShoot
 class Enemy: public Entity, public hasTexture, public isAnimated
 {
     public:
+    
         Enemy(float x, float y)
         {
             frameSpeed = 10;
@@ -292,21 +289,20 @@ class Enemy: public Entity, public hasTexture, public isAnimated
             setTextureID(EnemyEyeTexture);
         }
         void draw() {
-            static int frameCooldown = 0;
-            static int currentFrame = 0;
+
             this->currentFraming.x = this->size.x*currentFrame;
             DrawTextureRec(TEXTURES[this->textureID], this->currentFraming, this->position, WHITE);
             
-            if (frameCooldown == frameSpeed) {
-                if (currentFrame == this->frameCount) {
-                    currentFrame = 0;
+            if (this->frameCooldown == this->frameSpeed) {
+                if (this->currentFrame == this->frameCount) {
+                    this->currentFrame = 0;
                 }
-                currentFrame++;
+                this->currentFrame++;
             }
-            if (frameCooldown == frameSpeed) {
-                frameCooldown = 0;
+            if (this->frameCooldown == this->frameSpeed) {
+                this->frameCooldown = 0;
             }
-            frameCooldown++;
+            this->frameCooldown++;
             //DrawTextureV(TEXTURES[this->textureID], this->position, WHITE);
         }
     
@@ -318,12 +314,17 @@ GameArea gamearea;
 LevelCounter levelcounter;
 Player player;
 
-std::vector<class Enemy*> enemies;
+std::vector<class Enemy*> enemies
+{
+    new class Enemy(0, 40),
+    new class Enemy(100, 40),
+    new class Enemy(200, 40),
+
+};
 
 int main( void )
 {
-    enemies.push_back(new class Enemy(40, 60));
-    enemies.push_back(new class Enemy(100, 20));
+
     InitWindow(window.width, window.height, window.title);
     SetTargetFPS(60);
     
