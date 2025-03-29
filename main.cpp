@@ -35,7 +35,9 @@ Planned general:
 */ 
 
 #include <iostream>
+#include <vector>
 #include "raylib.h"
+
 
 #define gamearea_square 512
 #define topbar_height 64
@@ -88,6 +90,12 @@ class hasTexture {
         enum TextureEnum getTextureID() {
             return this->textureID;
         }
+};
+class isAnimated {
+    protected:
+        int frameCount;
+        int frameSpeed;
+        Rectangle currentFraming;
 };
 class TopBar : public StaticSquareArea, public hasTexture
 {
@@ -199,14 +207,14 @@ enum bulletType {
     PLAYER,
     ENEMY
 };
-class Bullet : public Entity
+class Bullet : public Entity, public hasTexture
 {
-    
     private:
         Vector2 velocity;
     public:
         Bullet(enum bulletType type)
         {
+            setTextureID(NullTexture);
             switch(type) {
                 case PLAYER:
                     velocity = {0, -1};
@@ -235,6 +243,9 @@ class Player: public Entity, public hasTexture, public canShoot
             DrawTextureV(TEXTURES[this->textureID], this->position, RED);
         }
         void control() {
+            if (IsKeyDown(KEY_SPACE)) {
+                this->shoot();
+            }
             if (IsKeyDown(KEY_A)) {
                 this->velocity.x += -1.0;
             }
@@ -268,9 +279,36 @@ class Player: public Entity, public hasTexture, public canShoot
         }
         
 };
-class Enemy: public Entity, public hasTexture
+class Enemy: public Entity, public hasTexture, public isAnimated
 {
-    
+    public:
+        Enemy(float x, float y)
+        {
+            frameSpeed = 10;
+            frameCount = 4;
+            this->size = {96, 64};
+            currentFraming = {0, 0, this->size.x, this->size.y};
+            this->position = {x, y};
+            setTextureID(EnemyEyeTexture);
+        }
+        void draw() {
+            static int frameCooldown = 0;
+            static int currentFrame = 0;
+            this->currentFraming.x = this->size.x*currentFrame;
+            DrawTextureRec(TEXTURES[this->textureID], this->currentFraming, this->position, WHITE);
+            
+            if (frameCooldown == frameSpeed) {
+                if (currentFrame == this->frameCount) {
+                    currentFrame = 0;
+                }
+                currentFrame++;
+            }
+            if (frameCooldown == frameSpeed) {
+                frameCooldown = 0;
+            }
+            frameCooldown++;
+            //DrawTextureV(TEXTURES[this->textureID], this->position, WHITE);
+        }
     
 };
 
@@ -280,8 +318,12 @@ GameArea gamearea;
 LevelCounter levelcounter;
 Player player;
 
+std::vector<class Enemy*> enemies;
+
 int main( void )
 {
+    enemies.push_back(new class Enemy(40, 60));
+    enemies.push_back(new class Enemy(100, 20));
     InitWindow(window.width, window.height, window.title);
     SetTargetFPS(60);
     
@@ -299,7 +341,7 @@ void LoadTextures()
 {
         IMAGES[0] = LoadImage("res/null.png");
         IMAGES[10] = LoadImage("res/player.png");
-        IMAGES[20] = LoadImage("res/enemyEye.gif");
+        IMAGES[20] = LoadImage("res/enemyEye_sheet.png");
         IMAGES[40] = LoadImage("res/sidebar_background.png");
         IMAGES[41] = LoadImage("res/sidebar_progress_background.png");
         IMAGES[42] = LoadImage("res/sidebar_progress_background_display.png");
@@ -324,7 +366,9 @@ void Drawing()
 {
     BeginDrawing();
     ClearBackground(BLACK);
-    
+    for (class Enemy* enemy : enemies) {
+        enemy->draw();
+    }
     player.draw();
     sidebar.draw();
     
