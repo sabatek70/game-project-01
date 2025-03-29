@@ -167,6 +167,24 @@ class Entity
             this->position.x += this->velocity.x;
             this->position.y += this->velocity.y;
         }
+        void bounds() {
+            if (this->position.x < 0) {
+                this->position.x = 0;
+                this->velocity.x = 0;
+            }
+            if (this->position.x > gamearea_square - this->size.x) {
+                this->position.x = gamearea_square - this->size.x;
+                this->velocity.x = 0;
+            }
+            if (this->position.y < topbar_height) {
+                this->position.y = topbar_height;
+                this->velocity.y = 0;
+            }
+            if (this->position.y > gamearea_square + topbar_height - this->size.y) {
+                this->position.y = gamearea_square + topbar_height - this->size.y;
+                this->velocity.y = 0;
+            }
+        }
     private:
         int life = 0;
 };
@@ -187,7 +205,6 @@ class Bullet : public Entity
     private:
         Vector2 velocity;
     public:
-    
         Bullet(enum bulletType type)
         {
             switch(type) {
@@ -217,6 +234,39 @@ class Player: public Entity, public hasTexture, public canShoot
         void draw() {
             DrawTextureV(TEXTURES[this->textureID], this->position, RED);
         }
+        void control() {
+            if (IsKeyDown(KEY_A)) {
+                this->velocity.x += -1.0;
+            }
+            if (IsKeyDown(KEY_D)) {
+                this->velocity.x += 1.0;
+            }
+            if (IsKeyDown(KEY_W)) {
+                this->velocity.y -= 1.0;
+            }
+            if (IsKeyDown(KEY_S)) {
+                this->velocity.y += 1.0;
+            }
+            if (this->velocity.x > 0) {
+                this->velocity.x -= 0.3;
+            }
+            if (this->velocity.x < 0) {
+                this->velocity.x += 0.3;
+            }
+            if (this->velocity.x < 0.21 && this->velocity.x > -0.21) {
+                this->velocity.x = 0;
+            }
+            if (this->velocity.y > 0) {
+                this->velocity.y -= 0.3;
+            }
+            if (this->velocity.y < 0) {
+                this->velocity.y += 0.3;
+            }
+            if (this->velocity.y < 0.21 && this->velocity.y > -0.21) {
+                this->velocity.y = 0;
+            }
+        }
+        
 };
 class Enemy: public Entity, public hasTexture
 {
@@ -263,23 +313,11 @@ void LoadTextures()
 
 void Calculation()
 {
-    if (IsKeyDown(KEY_A)){
-        player.velocity.x += -1.0;
-    }
-    if (IsKeyDown(KEY_D)){
-        player.velocity.x += 1.0;
-    }
     
-    if (player.velocity.x > 0) {
-        player.velocity.x -= 0.3;
-    }
-    if (player.velocity.x < 0) {
-        player.velocity.x += 0.3;
-    }
-    if (player.velocity.x < 0.21 && player.velocity.x > -0.21) {
-        player.velocity.x = 0;
-    }
+    
+    player.control();
     player.move();
+    player.bounds();
     return;
 }
 void Drawing()
