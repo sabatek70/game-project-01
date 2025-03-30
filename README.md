@@ -1,4 +1,4 @@
-[CLOSED] This is a small game project in raylib using C++. 6-7 Hours in. The project has been ditched, due to a massive skill-issue i.e. lack of experience, horrible organization and big gaps in knowledge.
+[CLOSED/ABANDONED] This is a small game project in raylib using C++. 6-7 Hours in. The project has been ditched, due to a massive skill-issue i.e. lack of experience, horrible organization and big gaps in knowledge.
 
 Things to do differently next time:
   - "m_" name convention for member variables?
